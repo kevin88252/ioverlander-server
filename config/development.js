@@ -12,7 +12,7 @@ module.exports = {
   db: {
     username:"ioverlander",
     password:"password",
-    database: "ioverlander",
+    database: "ioverlander_production",
     host: "localhost",
   },
   sessionDb: {

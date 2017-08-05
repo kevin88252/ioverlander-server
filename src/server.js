@@ -5,175 +5,85 @@ require('babel-register')({
 // dotenv loads a local ".env" file and adds any variables defined inside to process.env
 require('dotenv').config()
 
-if (process.env.NODE_ENV === 'production') {
-  require('pmx').init()
-}
+// Dependencies
+const debug = require('debug')('iOverlander:Server')
+const express = require('express')
+const helmet = require('helmet')
+const flash = require('connect-flash')
+const React = require('react')
+const ReactDOMServer = require('react-dom/server')
+const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
+const compression = require('compression')
+const multer = require('multer')
+const ReactRouter = require('react-router-dom').StaticRouter
+const matchPath = require('react-router-dom').matchPath
+const config = require('config')
 
-var debug = require('debug')('iOverlander:Server')
-
-var express = require('express')
-var helmet = require('helmet')
-var csp = require('helmet-csp')
-var flash = require('connect-flash')
-var React = require('react')
-var ReactDOMServer = require('react-dom/server')
-var bodyParser = require('body-parser')
-var cookieParser = require('cookie-parser')
-var session = require('express-session')
-var Html = require('./components/Html').default
-var enableApi = require('./api')
-var passport = require('./helpers/authenticationStrategy').default
-var Sequelize = require('sequelize')
-var compression = require('compression')
-var multer = require('multer')
-var upload = multer({ dest: 'tmp/' })
-var SequelizeStore = require('connect-session-sequelize')(session.Store)
-var createUploadClient = require('./helpers/awsClient').default
-
-var ReactRouter = require('react-router-dom').StaticRouter
-var matchPath = require('react-router-dom').matchPath
-var routes = require('./config/routes').default
-
-var config = require('config')
-var sessionDB = new Sequelize(config.get('sessionDb.database'), config.get('sessionDb.username'), config.get('sessionDb.password'),config.get('sessionDb'))
-
-var makeClientConfig = require('./client_config').default
-
-// Create session DB
-sessionDB.sync()
+// Local dependencies
+const Html = require('./components/Html').default
+const enableApi = require('./api')
+const passport = require('./helpers/authenticationStrategy').default
+const middlewares = require('./helpers/middleware')
+const upload = multer({ dest: 'tmp/' })
+const routes = require('./config/routes').default
+const makeClientConfig = require('./client_config').default
+const createApplicationStore = require('./store/ApplicationStore').default
+const setUser = require('./actions/setUser').setUser
+const Container = require('./components/Container').default
 
 debug('Server booting')
-
-var createApplicationStore = require('./store/ApplicationStore').default
-var setUser = require('./actions/setUser').setUser
-var Container = require('./components/Container').default
-
 const app = express()
 
 debug('Starting server')
 
 // Middleware
+// Security
 app.use(helmet())
 
+// Content Security Policy (CSP)
 const inlineScriptNonce = Math.random().toString(36).substring(7)
 if (process.env.NODE_ENV === 'production') {
-  app.use(csp(
-    {
-      directives: {
-        scriptSrc: ["'self'", config.get('assets.host'), 'open.mapquestapi.com', `'nonce-${inlineScriptNonce}'`],
-        styleSrc: ["'self'", config.get('assets.host'), 'fonts.googleapis.com', 'cdnjs.cloudflare.com', "'unsafe-inline'"],
-        imgSrc: ["'self'", config.get('assets.host'),  '*.ioverlander.com', 'data:', '*.tile.openstreetmap.org', 'cdnjs.cloudflare.com', '*.tiles.mapbox.com', '*.mqcdn.com', '*.mapquestapi.com', 's3-us-west-2.amazonaws.com'],
-        fontSrc: ["'self'", config.get('assets.host'), 'fonts.gstatic.com'],
-        objectSrc: ["'none'"]
-      }
-    }
-  ))
+  app.use(middlewares.contentSecurityPolicy(inlineScriptNonce))
 }
 
+// Gzip
 app.use(compression())
-app.use(cookieParser())
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
-app.use(bodyParser.json({ limit: '50mb' }))
-app.use(session({
-  resave: true,
-  saveUninitialized: true,
-  secret: config.get('sessionSettings.secret'),
-  store: new SequelizeStore({ db: sessionDB }),
-  cookie: {
-    secure: config.get('sessionSettings.secure'),
-    domain: config.get('domain')
-  }
-}))
 
+// Cookies
+app.use(cookieParser())
+
+// Bodyparser for URLencoded forms
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
+
+// Bodyparser for JSON uploads
+app.use(bodyParser.json({ limit: '50mb' }))
+
+// Sessions (in the DB)
+app.use(middlewares.sessions())
+
+// Authentication with passport
 app.use(passport.initialize())
 app.use(passport.session())
+
+// Flash messages
 app.use(flash())
 
 // Healthcheck
-app.get('/private/health', (req, res) => {
-  res.json({ UP: true })
-})
+app.get('/private/health', middlewares.healthCheck())
 
 // CORS
-app.use(function (req, res, next) {
-  if (req.hostname.indexOf('ioverlander') > -1 || req.hostname === 'localhost') {
-    res.set('Access-Control-Allow-Origin', '*')
-  }
-  next()
-})
+app.use(middlewares.cors())
 
-// Login is special
-// TODO: Make this middleware
-app.post('/login', function (req, res, next) {
-  passport.authenticate('local', function (err, user, info) {
-    if (info && info.message) { req.flash('error', info.message) }
-    if (err) { return next(err) }
-    if (!user) { return res.redirect('/users/sign_in') }
-    req.logIn(user, function (err) {
-      if (err) { return next(err) }
-      req.session.save(() => {
-        return res.redirect(req.session.targetUrl || '/blogs/' + user.blog_id)
-      })
-    })
-  })(req, res, next)
-})
+// Login/Logout
+app.post('/login', middlewares.login())
+app.get('/logout', middlewares.logout())
 
-// Logout is also special
-// TODO: Make this middleware
-app.get('/logout', function (req, res) {
-  req.logout()
-  req.session.destroy()
-  res.set('Set-cookie', 'connect.sid=DEL;expires=Sun, 15 Jul 2012 00:00:01 GMT')
-  res.redirect('/')
-})
+// Get logged in user
+app.get('/getUserInfo', middlewares.getUserInfo())
 
-app.get('/getUserInfo', function (req, res, next) {
-  res.json(req.user)
-})
-
-var models = require('./db/models')
-var moment = require('moment')
-
-// TODO: Make this middleware
-app.post('/photos/upload', upload.array('photos', 5), (req, res, next) => {
-  const images = []
-
-  req.files.forEach((file, index) => {
-    models.images.build({
-      source_url: null,
-      guid: null,
-      blog_id: req.user.blog_id,
-      imageable_id: req.body.check_in_id,
-      imageable_type: 'CheckIn|BETA',
-      pgfile_fingerprint: null,
-      created_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
-      updated_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
-      jpgfile_file_name: file.originalname,
-      jpgfile_content_type: file.mimetype,
-      jpgfile_file_size: file.size,
-      jpgfile_updated_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
-      jpgfile_processing: false
-    }).save().then((image) => {
-      const client = createUploadClient(image.id)
-
-      client.upload(`tmp/${file.filename}`, {}, function (err, versions, meta) {
-        if (err) { throw err }
-        versions.forEach(function (image) {
-          if (image.url.indexOf('small') > -1) {
-            images.push(image.url)
-          }
-        })
-
-        if (index === (req.files.length - 1)) {
-          res.status(200)
-          res.json({
-            previews: images
-          })
-        }
-      })
-    })
-  })
-})
+// Upload of photos
+app.post('/photos/upload', upload.array('photos', 5), middlewares.uploadUserImages())
 
 enableApi(app)
 
@@ -192,9 +102,9 @@ app.use((req, res, next) => {
     }
   })
 
-  console.log('ACTIONS', actionsToDispatch)
-  const waitForRender = actionsToDispatch.length ?
-    appStore.dispatch(actionsToDispatch[0][0](actionsToDispatch[0][1])) : Promise.resolve()
+  const waitForRender = actionsToDispatch.length
+    ? appStore.dispatch(actionsToDispatch[0][0](actionsToDispatch[0][1]))
+    : Promise.resolve()
 
   waitForRender.then(() => {
     appStore.dispatch(setUser(req.user))
@@ -214,7 +124,7 @@ app.use((req, res, next) => {
     const routeHandler = React.createElement(Html, {
       html: ReactDOMServer.renderToString(routeComponent),
       clientConfig: makeClientConfig(),
-      jsUrl: config.get('assets.urlPrefix')+'bundle.js',
+      jsUrl: config.get('assets.urlPrefix') + 'bundle.js',
       cssUrl: config.get('assets.compileAssets') ? config.get('assets.urlPrefix')+'style.css' : false,
       // title: route.title,
       appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),
@@ -245,8 +155,8 @@ if (process.env.NODE_ENV !== 'production') {
     server: 'https://acme-v01.api.letsencrypt.org/directory',
     email: config.get('email.address'),
     agreeTos: true,
-    approveDomains: [ config.get('domain')],
+    approveDomains: [config.get('domain')],
     app
   }).listen(80, 443)
-  debug('Listening on '+config.get('baseUrl'))
+  debug('Listening on ' + config.get('baseUrl'))
 }
