@@ -31,7 +31,7 @@ class Container extends React.Component {
       <Header user={this.props.loggedInUser} />
         <Switch>
           {routes.map(route => {
-            return <Route {...route} exact />
+            return <Route exact {...route} />
           })}
         </Switch>
       <Footer />

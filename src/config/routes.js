@@ -87,18 +87,18 @@ const routes = [
     action: getStaticContentAction
   },
   {
-    path: '/check_ins/new',
+    path: '/places/:id/check_in',
     component: CheckIn,
     action: placeDetailsAction,
     title: 'Check-in | iOverlander',
     role_required: 'user'
   },
-  {
-    path: '/',
-    title: 'iOverlander - Find your next destination',
-    component: HomePage,
-    action: getPlaceTypesFromAPI
-  }
+  // {
+  //   path: '/',
+  //   title: 'iOverlander - Find your next destination',
+  //   component: HomePage,
+  //   action: getPlaceTypesFromAPI
+  // }
 ]
 
 export default routes

@@ -4,6 +4,7 @@ import EditCheckInDetails from './Forms/CheckInDetails'
 import UploadImagesForm from './Forms/UploadImages'
 import EditPlaceDetailsForm from './Forms/PlaceDetails'
 import request from 'superagent'
+import { connect } from 'react-redux'
 
 if (process.env.BROWSER) {
   require('./checkIn.scss')
@@ -169,4 +170,8 @@ CheckIn.propTypes = {
   store: PropTypes.object
 }
 
-export default CheckIn
+export default connect((state) => {
+  return {
+    selectedPlace: state.selectedPlace
+  }
+})(CheckIn)
