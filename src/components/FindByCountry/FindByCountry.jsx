@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react'
 import { AllHtmlEntities } from 'html-entities'
+import { connect } from 'react-redux'
 import NavLink from '../NavLink/NavLink'
 import getSlug from 'speakingurl'
 
@@ -61,4 +62,10 @@ FindByCountry.propTypes = {
   placesData: PropTypes.array
 }
 
-export default FindByCountry
+export default connect(
+  (state) => {
+    return {
+      placesData: state.placesData
+    }
+  }
+)(FindByCountry)

@@ -53,7 +53,7 @@ export default function createValidatedForm (Component, fields, validation, getD
       })
 
       this.initialFields = childFields
-      this.props.store.dispatch(createForm(Component.displayName, childFields))
+      this.context.store.dispatch(createForm(Component.displayName, childFields))
     }
 
     getFieldValues () {
@@ -69,19 +69,19 @@ export default function createValidatedForm (Component, fields, validation, getD
     onBlur (e) {
       if (e.target.value !== '') {
         const fieldError = validation(this.getFieldValues())[e.target.name]
-        this.props.store.dispatch(validateSingle(Component.displayName, e.target.name, fieldError))
+        this.context.store.dispatch(validateSingle(Component.displayName, e.target.name, fieldError))
       }
     }
 
     onFocus (e) {
-      this.props.store.dispatch(onFocus(Component.displayName, e.target.name))
+      this.context.store.dispatch(onFocus(Component.displayName, e.target.name))
     }
 
     onChange (e) {
       const mainAction = (e) => {
         const fieldName = e.target.name
 
-        this.props.store.dispatch(onChange(Component.displayName, fieldName, e.target.value))
+        this.context.store.dispatch(onChange(Component.displayName, fieldName, e.target.value))
 
         if (this.props.fields[fieldName].touched && this.props.fields[fieldName].error) {
           const errors = validation(this.getFieldValues())
@@ -89,10 +89,10 @@ export default function createValidatedForm (Component, fields, validation, getD
           if (typeof errors === 'object' && typeof errors.then === 'function') {
             errors.then((errors) => {
               console.log(errors)
-              this.props.store.dispatch(validateSingle(Component.displayName, fieldName, errors[fieldName]))
+              this.context.store.dispatch(validateSingle(Component.displayName, fieldName, errors[fieldName]))
             })
           } else {
-            this.props.store.dispatch(validateSingle(Component.displayName, fieldName, errors[fieldName]))
+            this.context.store.dispatch(validateSingle(Component.displayName, fieldName, errors[fieldName]))
           }
         }
       }
@@ -113,7 +113,7 @@ export default function createValidatedForm (Component, fields, validation, getD
         const values = this.getFieldValues()
         const validationErrors = validation(values)
 
-        this.props.store.dispatch(validationStart(Component.displayName))
+        this.context.store.dispatch(validationStart(Component.displayName))
 
         if (typeof validationErrors === 'object' && typeof validationErrors.then === 'function') {
           validationErrors.then((errors) => {
@@ -126,11 +126,11 @@ export default function createValidatedForm (Component, fields, validation, getD
     }
 
     afterValidate (name, errors, handler) {
-      this.props.store.dispatch(touchAll(name))
-      this.props.store.dispatch(onValidate(name, errors))
+      this.context.store.dispatch(touchAll(name))
+      this.context.store.dispatch(onValidate(name, errors))
       this.focusFirstInvalidField()
 
-      this.props.store.dispatch(validationComplete(Component.displayName))
+      this.context.store.dispatch(validationComplete(Component.displayName))
 
       if (!Object.keys(errors).length) {
         handler()
@@ -138,7 +138,7 @@ export default function createValidatedForm (Component, fields, validation, getD
     }
 
     displayErrorsFromServer (errors) {
-      this.props.store.dispatch(onValidate(Component.displayName, errors))
+      this.context.store.dispatch(onValidate(Component.displayName, errors))
     }
 
     render () {
@@ -156,6 +156,10 @@ export default function createValidatedForm (Component, fields, validation, getD
     fields: PropTypes.object,
     store: PropTypes.object,
     isValidating: PropTypes.bool
+  }
+
+  ValidatedForm.contextTypes = {
+    store: PropTypes.object
   }
 
   return connect((state) => {

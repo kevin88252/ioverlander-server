@@ -4,6 +4,8 @@ import PlaceCard from '../PlaceCard/PlaceCard'
 import filters from './filters.json'
 import ReactPaginate from 'react-paginate'
 import getSlug from 'speakingurl'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
 import { searchForPlacesAction } from '../../actions/searchForPlacesAction'
 
@@ -275,4 +277,13 @@ CountryPlacesList.propTypes = {
   searchResults: PropTypes.object
 }
 
-export default CountryPlacesList
+export default connect((state) => {
+  return {
+    placeTypes: state.placeTypes,
+    searchResults: state.searchResults
+  }
+}, (dispatch) => {
+  return bindActionCreators({
+    searchForPlacesAction
+  }, dispatch)
+})(CountryPlacesList)

@@ -8,6 +8,8 @@ import ImageGallery from 'react-image-gallery'
 import ErrorHandler from '../ErrorHandler/ErrorHandler'
 import constructStaticAssetUrl from '../../helpers/staticAssetUrl'
 
+import { connect } from 'react-redux'
+
 const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/
 
 let L
@@ -207,4 +209,9 @@ PlaceDetails.propTypes = {
   selectedPlace: PropTypes.object
 }
 
-export default PlaceDetails
+export default connect((state) => {
+  return {
+    selectedPlace: state.selectedPlace,
+    err: state.selectedPlace.err
+  }
+})(PlaceDetails)

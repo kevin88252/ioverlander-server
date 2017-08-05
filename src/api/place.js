@@ -9,7 +9,7 @@ const ROOT_URL = '//s3-us-west-2.amazonaws.com/ioverlander.com/images/jpgfiles'
 
 export default (models) => function (req, res, next) {
   const getOptions = models.property_def_options.findAll({
-    order: 'sort_order DESC'
+    order: [['sort_order', 'DESC']]
   })
   const getDefs = models.property_defs.findAll()
   const getCountries = models.countries.findAll({

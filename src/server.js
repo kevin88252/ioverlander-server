@@ -9,7 +9,6 @@ if (process.env.NODE_ENV === 'production') {
   require('pmx').init()
 }
 
-var fs = require('fs')
 var debug = require('debug')('iOverlander:Server')
 
 var express = require('express')
@@ -24,14 +23,16 @@ var session = require('express-session')
 var Html = require('./components/Html').default
 var enableApi = require('./api')
 var passport = require('./helpers/authenticationStrategy').default
-var proxy = require('express-http-proxy')
 var Sequelize = require('sequelize')
 var compression = require('compression')
 var multer = require('multer')
 var upload = multer({ dest: 'tmp/' })
 var SequelizeStore = require('connect-session-sequelize')(session.Store)
 var createUploadClient = require('./helpers/awsClient').default
-var http2 = require('spdy')
+
+var ReactRouter = require('react-router-dom').StaticRouter
+var matchPath = require('react-router-dom').matchPath
+var routes = require('./config/routes').default
 
 var config = require('config')
 var sessionDB = new Sequelize(config.get('sessionDb.database'), config.get('sessionDb.username'), config.get('sessionDb.password'),config.get('sessionDb'))
@@ -43,23 +44,13 @@ sessionDB.sync()
 
 debug('Server booting')
 
-var Router = require('./routing/Router').default
 var createApplicationStore = require('./store/ApplicationStore').default
 var setUser = require('./actions/setUser').setUser
 var Container = require('./components/Container').default
 
-var ApplicationStore = createApplicationStore()
-
-var setCurrentRoute = require('./actions/navigationActions').updateCurrentRoute
-
 const app = express()
-const routes = ApplicationStore.getState().routes
 
 debug('Starting server')
-
-// Routes
-debug('Setting Routes')
-Router.setRoutes(routes)
 
 // Middleware
 app.use(helmet())
@@ -91,9 +82,8 @@ app.use(session({
   cookie: {
     secure: config.get('sessionSettings.secure'),
     domain: config.get('domain')
-    }
-  })
-)
+  }
+}))
 
 app.use(passport.initialize())
 app.use(passport.session())
@@ -113,6 +103,7 @@ app.use(function (req, res, next) {
 })
 
 // Login is special
+// TODO: Make this middleware
 app.post('/login', function (req, res, next) {
   passport.authenticate('local', function (err, user, info) {
     if (info && info.message) { req.flash('error', info.message) }
@@ -128,6 +119,7 @@ app.post('/login', function (req, res, next) {
 })
 
 // Logout is also special
+// TODO: Make this middleware
 app.get('/logout', function (req, res) {
   req.logout()
   req.session.destroy()
@@ -142,99 +134,99 @@ app.get('/getUserInfo', function (req, res, next) {
 var models = require('./db/models')
 var moment = require('moment')
 
+// TODO: Make this middleware
 app.post('/photos/upload', upload.array('photos', 5), (req, res, next) => {
-const images = []
+  const images = []
 
-req.files.forEach((file, index) => {
-  models.images.build({
-    source_url: null,
-    guid: null,
-    blog_id: req.user.blog_id,
-    imageable_id: req.body.check_in_id,
-    imageable_type: 'CheckIn|BETA',
-    pgfile_fingerprint: null,
-    created_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
-    updated_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
-    jpgfile_file_name: file.originalname,
-    jpgfile_content_type: file.mimetype,
-    jpgfile_file_size: file.size,
-    jpgfile_updated_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
-    jpgfile_processing: false
-  }).save().then((image) => {
-    const client = createUploadClient(image.id)
+  req.files.forEach((file, index) => {
+    models.images.build({
+      source_url: null,
+      guid: null,
+      blog_id: req.user.blog_id,
+      imageable_id: req.body.check_in_id,
+      imageable_type: 'CheckIn|BETA',
+      pgfile_fingerprint: null,
+      created_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
+      updated_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
+      jpgfile_file_name: file.originalname,
+      jpgfile_content_type: file.mimetype,
+      jpgfile_file_size: file.size,
+      jpgfile_updated_at: moment().format('YYYY-MM-DD HH:mm:ss.SSSSSS'),
+      jpgfile_processing: false
+    }).save().then((image) => {
+      const client = createUploadClient(image.id)
 
-    client.upload(`tmp/${file.filename}`, {}, function (err, versions, meta) {
-      if (err) { throw err }
-      versions.forEach(function (image) {
-        if (image.url.indexOf('small') > -1) {
-          images.push(image.url)
+      client.upload(`tmp/${file.filename}`, {}, function (err, versions, meta) {
+        if (err) { throw err }
+        versions.forEach(function (image) {
+          if (image.url.indexOf('small') > -1) {
+            images.push(image.url)
+          }
+        })
+
+        if (index === (req.files.length - 1)) {
+          res.status(200)
+          res.json({
+            previews: images
+          })
         }
       })
-
-      if (index === (req.files.length - 1)) {
-        res.status(200)
-        res.json({
-          previews: images
-        })
-      }
     })
   })
 })
-})
 
-debug('Setting API Routes')
 enableApi(app)
 
 // Handle Requests
 app.use((req, res, next) => {
   debug('SessionUser exists? ', !!req.user)
   const appStore = createApplicationStore()
-  const route = Router.getRoute(req, req.user)
+  const context = {}
+  const actionsToDispatch = []
 
-  if (route.redirect) {
-    if (route.message) { req.flash('error', route.message) }
-    res.redirect(302, route.path)
-    return
-  }
+  routes.some(route => {
+    const match = matchPath(req.url, route)
 
-  const waitForRender = route.action ? appStore.dispatch(route.action(route, req.user)) : new Promise((res, rej) => res())
+    if (match && route.action) {
+      actionsToDispatch.push([route.action, match])
+    }
+  })
 
-  route.path = route.path || req.path
+  console.log('ACTIONS', actionsToDispatch)
+  const waitForRender = actionsToDispatch.length ?
+    appStore.dispatch(actionsToDispatch[0][0](actionsToDispatch[0][1])) : Promise.resolve()
 
   waitForRender.then(() => {
-    appStore.dispatch(setCurrentRoute(route))
     appStore.dispatch(setUser(req.user))
     appStore.dispatch({
       type: 'SET_FLASH',
       flashMessage: req.flash('error')
     })
 
-    if (route.handler.prototype instanceof React.Component) {
-      const routeComponent = React.createElement(Container, {
-        store: appStore,
-        params: route.params,
-        err: route.err
+    const routeComponent = React.createElement(ReactRouter, {
+      location: req.url,
+      context: context,
+      children: React.createElement(Container, {
+        store: appStore
       })
+    })
 
-      const routeHandler = React.createElement(Html, {
-        html: ReactDOMServer.renderToString(routeComponent),
-        clientConfig: makeClientConfig(),
-        jsUrl: config.get('assets.urlPrefix')+'bundle.js',
-        cssUrl: config.get('assets.compileAssets') ? config.get('assets.urlPrefix')+'style.css' : false,
-        title: route.title,
-        appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),
-        store: appStore,
-        nonce: inlineScriptNonce
-      })
+    const routeHandler = React.createElement(Html, {
+      html: ReactDOMServer.renderToString(routeComponent),
+      clientConfig: makeClientConfig(),
+      jsUrl: config.get('assets.urlPrefix')+'bundle.js',
+      cssUrl: config.get('assets.compileAssets') ? config.get('assets.urlPrefix')+'style.css' : false,
+      // title: route.title,
+      appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),
+      store: appStore,
+      nonce: inlineScriptNonce
+    })
 
-      const renderedComponent = ReactDOMServer.renderToString(routeHandler)
+    const renderedComponent = ReactDOMServer.renderToString(routeHandler)
 
-      res.set('Content-Type', 'text/html')
-      res.end('<!DOCTYPE html>' + renderedComponent)
-      debug('Response sent')
-    } else {
-      route.handler(req, res, next, Object.assign({}, route.handlerOptions || {}))
-    }
+    res.set('Content-Type', 'text/html')
+    res.end('<!DOCTYPE html>' + renderedComponent)
+    debug('Response sent')
   }).catch((e) => {
     next(e)
   })
@@ -258,5 +250,3 @@ if (process.env.NODE_ENV !== 'production') {
   }).listen(80, 443)
   debug('Listening on '+config.get('baseUrl'))
 }
-
-

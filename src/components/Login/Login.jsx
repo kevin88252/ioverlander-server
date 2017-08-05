@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react'
+import { connect } from 'react-redux'
 
 if (process.env.BROWSER) {
   require('./Login.scss')
@@ -43,4 +44,8 @@ Login.propTypes = {
   selectedBlog: PropTypes.object
 }
 
-export default Login
+export default connect((state) => {
+  return {
+    flashMessage: state.flashMessage
+  }
+})(Login)

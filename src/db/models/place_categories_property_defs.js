@@ -19,15 +19,15 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: undefined
     }
   }, {
-    tableName: 'place_categories_property_defs',
     underscored: true,
-    timestamps: false,
-    classMethods: {
-      associate: (models) => {
-        categoryPropertyDefs.belongsTo(models.property_defs)
-      }
-    }
+    timestamps: false
   })
+
+  categoryPropertyDefs.tableName = 'place_categories_property_defs'
+      
+  categoryPropertyDefs.associate = (models) => {
+    categoryPropertyDefs.belongsTo(models.property_defs)
+  }
 
   return categoryPropertyDefs
 }

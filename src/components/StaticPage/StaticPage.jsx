@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react'
+import { connect } from 'react-redux'
 
 class StaticPage extends React.Component {
   render () {
@@ -15,4 +16,8 @@ StaticPage.propTypes = {
   staticContent: PropTypes.string
 }
 
-export default StaticPage
+export default connect((state) => {
+  return {
+    staticContent: state.staticContent
+  }
+})(StaticPage)

@@ -11,6 +11,7 @@ import PlaceCard from '../PlaceCard/PlaceCard'
 import getVisibleMapTiles from '../../helpers/getVisibleMapTiles'
 import Lightbox from '../Lightbox/Lightbox'
 import constructStaticAssetUrl from '../../helpers/staticAssetUrl'
+import { connect } from 'react-redux'
 
 let L
 
@@ -28,6 +29,7 @@ if (global.window) {
       var numdiv = document.createElement('div')
       var numberSpan = document.createElement('span')
       numdiv.setAttribute('class', 'number-marker')
+      numdiv.setAttribute('style', `background-image: url(${constructStaticAssetUrl('/icons/blue-orb.png')})`)
       numdiv.appendChild(numberSpan)
       numberSpan.innerHTML = this.options['number']
       div.appendChild(numdiv)
@@ -353,4 +355,13 @@ HomePage.propTypes = {
   mapMarkers: PropTypes.array
 }
 
-export default HomePage
+export default connect(
+  (state) => {
+    return {
+      showLoadingWheel: state.showLoadingWheel,
+      countryPlaceCounts: state.countryPlaceCounts,
+      mapMarkers: state.mapMarkers,
+      placeTypes: state.placeTypes
+    }
+  }
+)(HomePage)
