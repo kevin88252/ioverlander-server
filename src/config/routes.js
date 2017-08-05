@@ -93,12 +93,12 @@ const routes = [
     title: 'Check-in | iOverlander',
     role_required: 'user'
   },
-  // {
-  //   path: '/',
-  //   title: 'iOverlander - Find your next destination',
-  //   component: HomePage,
-  //   action: getPlaceTypesFromAPI
-  // }
+  {
+    path: '/',
+    title: 'iOverlander - Find your next destination',
+    component: HomePage,
+    action: getPlaceTypesFromAPI
+  }
 ]
 
 export default routes
