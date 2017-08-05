@@ -107,13 +107,18 @@ app.use((req, res, next) => {
     ))
 
     if (match && route.action) {
-      actionsToDispatch.push([route.action, match])
+      if (Array.isArray(route.action)) {
+        route.action.forEach(action => actionsToDispatch.push([action, match]))
+      } else {
+        actionsToDispatch.push([route.action, match])
+      }
     }
   })
 
   const waitForRender = actionsToDispatch.length
-    ? appStore.dispatch(actionsToDispatch[0][0](actionsToDispatch[0][1], req.user))
-    : Promise.resolve()
+    ? Promise.all(actionsToDispatch.map(action => {
+      return appStore.dispatch(action[0](action[1], req.user))
+    })) : Promise.resolve()
 
   waitForRender.then(() => {
     appStore.dispatch(setUser(req.user))

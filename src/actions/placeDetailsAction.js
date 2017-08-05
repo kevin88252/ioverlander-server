@@ -12,6 +12,8 @@ function setPlaceDetails (data) {
 }
 
 export function placeDetailsAction (route) {
-  const ID = route.params.id === 'new' ? 1 : route.params.id || route.params.place
+  const ID = (!route.params.id || route.params.id === 'new')
+    ? 1
+    : (route.params.id || route.params.place)
   return asyncApiAction(`${config.get('apiEndpoint')}/place/${ID}`, setPlaceDetails, setPlaceDetails, { err: 'Place not found' }, route)
 }

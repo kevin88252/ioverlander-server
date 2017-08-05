@@ -4,6 +4,7 @@ import { onChange } from '../../../actions/validation/validationActions'
 import request from 'superagent'
 import initialiseMap from '../../../helpers/initialiseMap'
 import constructStaticAssetUrl from '../../../helpers/staticAssetUrl'
+import { connect } from 'react-redux'
 let L
 
 if (global.window) {
@@ -41,7 +42,6 @@ export const validateFields = (fields) => {
 }
 
 class UpdatePlaceDetailsForm extends React.Component {
-
   constructor () {
     super()
     this.state = {
@@ -313,7 +313,11 @@ UpdatePlaceDetailsForm.displayName = 'UpdatePlaceDetailsForm'
 
 export { UpdatePlaceDetailsForm }
 
-export default createValidatedForm(UpdatePlaceDetailsForm, FIELDS, validateFields, {
+export default connect((state) => {
+  return {
+    selectedPlace: state.selectedPlace
+  }
+})(createValidatedForm(UpdatePlaceDetailsForm, FIELDS, validateFields, {
   placeName: (props) => props.selectedPlace.name,
   placeCategory: (props) => props.selectedPlace.place_type_id,
   placeDescription: (props) => props.selectedPlace.description,
@@ -323,4 +327,4 @@ export default createValidatedForm(UpdatePlaceDetailsForm, FIELDS, validateField
   placeLatitude: (props) => props.state.placeLat,
   placeLongitude: (props) => props.state.placeLng,
   placeAltitude: (props) => props.selectedPlace.location.altitude
-})
+}))

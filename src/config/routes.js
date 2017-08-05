@@ -59,7 +59,10 @@ const routes = [
     component: CreateNewPlace,
     title: 'Add new Place | iOverlander',
     role_required: 'user',
-    action: placeDetailsAction
+    action: [
+      placeDetailsAction,
+      getPlaceTypesFromAPI
+    ]
   },
   {
     path: '/places/:id',
