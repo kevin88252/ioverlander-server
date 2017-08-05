@@ -361,7 +361,9 @@ export default connect(
       showLoadingWheel: state.showLoadingWheel,
       countryPlaceCounts: state.countryPlaceCounts,
       mapMarkers: state.mapMarkers,
-      placeTypes: state.placeTypes
+      placeTypes: state.placeTypes,
+      tilesLoaded: state.tilesLoaded,
+      tilesToLoad: state.tilesToLoad
     }
   }
 )(HomePage)
