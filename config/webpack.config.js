@@ -58,14 +58,12 @@ let configObj = {
     filename: 'bundle.js',
     publicPath: '/'
   },
-
   resolve: {
     extensions: ['.js', '.jsx'],
     alias: {
       config: path.resolve(__dirname, '../src/client_config.shim')
     },
   },
-
   module: {
     loaders: [
       {
@@ -96,7 +94,6 @@ let configObj = {
         from: path.resolve(__dirname, '../src/assets/icons'),
         to:'icons/',
     }])
-
   ]
 }
 
@@ -128,6 +125,9 @@ if (config.get('assets.compileAssets')) {
     test: /\.css$/,
     use: ["style-loader", "css-loader"],
   })
+  configObj.plugins.push(new webpack.DefinePlugin({
+    'process.env.BROWSER': JSON.stringify(true)
+  }))
 }
 
 module.exports = configObj
