@@ -31,7 +31,7 @@ class Container extends React.Component {
       <Header user={this.props.loggedInUser} />
         <Switch>
           {routes.map(route => {
-            return <Route exact {...route} />
+            return <Route exact {...route} key={route.path} />
           })}
         </Switch>
       <Footer />
@@ -48,7 +48,7 @@ Container.propTypes = {
   handler: PropTypes.func,
   dispatch: PropTypes.func,
   store: PropTypes.object,
-  loggedInUser: PropTypes.oneOfType([PropTypes.object, PropTypes.undefined])
+  loggedInUser: PropTypes.object
 }
 
 export default Container

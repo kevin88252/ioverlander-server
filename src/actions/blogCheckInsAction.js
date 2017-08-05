@@ -1,5 +1,5 @@
-let config = require('config')
 import asyncApiAction from '../helpers/asyncApiAction'
+let config = require('config')
 
 const BLOG_CHECK_INS = 'BLOG_CHECK_INS'
 

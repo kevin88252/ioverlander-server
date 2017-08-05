@@ -95,7 +95,11 @@ app.use((req, res, next) => {
   const actionsToDispatch = []
 
   routes.some(route => {
-    const match = matchPath(req.url, route)
+    const match = matchPath(req.url, Object.assign(
+      {},
+      { exact: true },
+      route
+    ))
 
     if (match && route.action) {
       actionsToDispatch.push([route.action, match])
@@ -103,7 +107,7 @@ app.use((req, res, next) => {
   })
 
   const waitForRender = actionsToDispatch.length
-    ? appStore.dispatch(actionsToDispatch[0][0](actionsToDispatch[0][1]))
+    ? appStore.dispatch(actionsToDispatch[0][0](actionsToDispatch[0][1], req.user))
     : Promise.resolve()
 
   waitForRender.then(() => {
@@ -125,7 +129,7 @@ app.use((req, res, next) => {
       html: ReactDOMServer.renderToString(routeComponent),
       clientConfig: makeClientConfig(),
       jsUrl: config.get('assets.urlPrefix') + 'bundle.js',
-      cssUrl: config.get('assets.compileAssets') ? config.get('assets.urlPrefix')+'style.css' : false,
+      cssUrl: config.get('assets.compileAssets') ? config.get('assets.urlPrefix') + 'style.css' : false,
       // title: route.title,
       appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),
       store: appStore,
@@ -150,7 +154,7 @@ if (process.env.NODE_ENV !== 'production') {
   debug('Listening on port 3000')
 } else {
 // TODO: Refactor letsencrypt
-  let greenlock = require('greenlock-express');
+  let greenlock = require('greenlock-express')
   greenlock.create({
     server: 'https://acme-v01.api.letsencrypt.org/directory',
     email: config.get('email.address'),

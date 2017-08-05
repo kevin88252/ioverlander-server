@@ -178,12 +178,14 @@ class CountryPlacesList extends React.Component {
 
       <div className='row'>
         <div className='small-12-columns'>
-          <ReactPaginate pageNum={this.props.searchResults.pages}
+          <ReactPaginate
+            pageCount={this.props.searchResults.pages}
             pageRangeDisplayed={5}
             marginPagesDisplayed={2}
             forceSelected={this.state.currentPage - 1}
             containerClassName='searchResults-pagination'
-            clickCallback={this.paginate} />
+            clickCallback={this.paginate}
+          />
         </div>
       </div>
 
@@ -256,12 +258,14 @@ class CountryPlacesList extends React.Component {
 
       <div className='row'>
         <div className='small-12-columns'>
-          <ReactPaginate pageNum={this.props.searchResults.pages}
+          <ReactPaginate
+            pageCount={this.props.searchResults.pages}
             pageRangeDisplayed={5}
             marginPagesDisplayed={2}
             forceSelected={this.state.currentPage - 1}
             containerClassName='searchResults-pagination'
-            clickCallback={this.paginate} />
+            clickCallback={this.paginate}
+          />
         </div>
       </div>
     </main>

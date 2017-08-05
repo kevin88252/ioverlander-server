@@ -4,6 +4,8 @@ import moment from 'moment'
 import NavLink from '../NavLink/NavLink'
 import getSlug from 'speakingurl'
 import ReactPaginate from 'react-paginate'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
 import { blogCheckInsAction } from '../../actions/blogCheckInsAction'
 
@@ -18,16 +20,18 @@ class BlogCheckInList extends React.Component {
   goToPage (e) {
     const pageNum = e.selected + 1
     const URL = `/blogs/${this.props.checkIns.blogId}/check_ins/${pageNum}` + window.location.search
-    this.context.dispatch(blogCheckInsAction({
+    blogCheckInsAction({
       params: {
         id: this.props.checkIns.blogId,
         page: pageNum
       }
-    }))
+    })
     history.replaceState({ path: URL }, document.title, URL)
   }
 
   render () {
+    const totalPages = this.props.checkIns.pages
+
     return <main className='content searchResults'>
       <div className='row'>
         <div className='small-12 columns'>
@@ -38,12 +42,17 @@ class BlogCheckInList extends React.Component {
 
       <div className='row'>
         <div className='small-12-columns'>
-          <ReactPaginate pageNum={this.props.checkIns.pages}
-            pageRangeDisplayed={5}
-            marginPagesDisplayed={2}
-            initalSelected={this.props.checkIns.currentPage - 1}
-            containerClassName='searchResults-pagination'
-            clickCallback={this.goToPage} />
+          {totalPages > 1 && (
+            <ReactPaginate
+              pageCount={totalPages}
+              pageRangeDisplayed={5}
+              marginPagesDisplayed={2}
+              initalSelected={this.props.checkIns.currentPage}
+              containerClassName='searchResults-pagination'
+              clickCallback={this.goToPage}
+              />
+            )
+          }
         </div>
       </div>
 
@@ -61,15 +70,18 @@ class BlogCheckInList extends React.Component {
       </div>
     </main>
   }
-
-}
-
-BlogCheckInList.contextTypes = {
-  dispatch: PropTypes.func
 }
 
 BlogCheckInList.propTypes = {
   checkIns: PropTypes.object
 }
 
-export default BlogCheckInList
+export default connect((state) => {
+  return {
+    checkIns: state.checkIns
+  }
+}, (dispatch) => {
+  return bindActionCreators({
+    blogCheckInsAction
+  }, dispatch)
+})(BlogCheckInList)

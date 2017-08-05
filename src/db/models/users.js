@@ -89,8 +89,7 @@ module.exports = function (sequelize, DataTypes) {
 
   User.tableName = 'users'
   User.prototype.verifyPassword = function verifyPassword (password) {
-    console.log(this)
-    bcrypt.compareSync(password, this.encrypted_password)
+    return bcrypt.compareSync(password, this.encrypted_password)
   }
   User.associate = (models) => {
     User.belongsToMany(models.roles, {
