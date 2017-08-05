@@ -4,6 +4,7 @@ import NavLink from '../NavLink/NavLink'
 import Lightbox from '../Lightbox/Lightbox'
 import getSlug from 'speakingurl'
 import constructStaticAssetUrl from '../../helpers/staticAssetUrl'
+import { connect } from 'react-redux'
 
 let L
 
@@ -102,4 +103,8 @@ BlogDetails.propTypes = {
   selectedBlog: PropTypes.object
 }
 
-export default BlogDetails
+export default connect((state) => {
+  return {
+    selectedBlog: state.selectedBlog
+  }
+})(BlogDetails)
