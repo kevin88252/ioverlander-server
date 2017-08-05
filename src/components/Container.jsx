@@ -29,11 +29,11 @@ class Container extends React.Component {
   render () {
     return <div className='app-inner'>
       <Header user={this.props.loggedInUser} />
-        <Switch>
-          {routes.map(route => {
-            return <Route exact {...route} key={route.path} />
-          })}
-        </Switch>
+      <Switch>
+        {routes.map(route => {
+          return <Route exact {...route} key={route.path} />
+        })}
+      </Switch>
       <Footer />
     </div>
   }

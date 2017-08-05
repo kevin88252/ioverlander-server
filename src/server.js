@@ -85,6 +85,9 @@ app.get('/getUserInfo', middlewares.getUserInfo())
 // Upload of photos
 app.post('/photos/upload', upload.array('photos', 5), middlewares.uploadUserImages())
 
+// Required roles
+app.use(middlewares.checkRole(routes))
+
 enableApi(app)
 
 // Handle Requests
@@ -93,6 +96,8 @@ app.use((req, res, next) => {
   const appStore = createApplicationStore()
   const context = {}
   const actionsToDispatch = []
+
+  console.log(req.user ? req.user.role : 'NOT_LOGGED_IN')
 
   routes.some(route => {
     const match = matchPath(req.url, Object.assign(

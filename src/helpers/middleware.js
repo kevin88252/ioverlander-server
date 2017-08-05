@@ -7,6 +7,7 @@ import csp from 'helmet-csp'
 import config from 'config'
 import Sequelize from 'sequelize'
 import passport from '../helpers/authenticationStrategy'
+import { matchPath } from 'react-router-dom'
 
 const SequelizeStore = sequelizeSession(session.Store)
 const sessionDB = new Sequelize(
@@ -95,6 +96,37 @@ export function logout () {
 export function getUserInfo () {
   return (req, res, next) => {
     res.json(req.user)
+  }
+}
+
+// Check user has the required role
+export function checkRole (routes) {
+  return (req, res, next) => {
+    let requiredRole = null
+
+    routes.some(route => {
+      const match = matchPath(req.url, Object.assign(
+        {},
+        { exact: true },
+        route
+      ))
+
+      if (match && route.role_required) {
+        requiredRole = route.role_required
+      }
+    })
+
+    const roleRequired = requiredRole !== null
+    const hasRequiredRole = req.user && req.user.role === requiredRole
+
+    if (roleRequired && hasRequiredRole) {
+      next()
+    } else if (!roleRequired) {
+      next()
+    } else {
+      req.flash('error', 'You must sign in to view this page')
+      res.redirect('/users/sign_in')
+    }
   }
 }
 
