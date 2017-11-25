@@ -1,6 +1,6 @@
 FROM node:8
 MAINTAINER Matt Malone <swapthatspoon@gmail.com>
-
+RUN printenv
 RUN mkdir -p /app
 WORKDIR /app
 
