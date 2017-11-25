@@ -146,7 +146,7 @@ app.use((req, res, next) => {
     const routeHandler = React.createElement(Html, {
       html: ReactDOMServer.renderToString(routeComponent),
       clientConfig: makeClientConfig(),
-      jsUrl: config.get('assets.urlPrefix') + 'bundle.js',
+      jsUrl: config.get('assets.urlPrefix') + 'bundle.'+config.get('version')+'.js',
       cssUrl: config.get('assets.compileAssets') ? config.get('assets.urlPrefix') + 'style.css' : false,
       // title: route.title,
       appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),

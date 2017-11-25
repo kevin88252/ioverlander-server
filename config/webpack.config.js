@@ -5,57 +5,21 @@ const path = require('path')
 const webpack = require('webpack')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const GitRevisionPlugin = require('git-revision-webpack-plugin')
+const CompressionPlugin = require('compression-webpack-plugin')
+const S3Plugin = require('webpack-s3-plugin')
 
 const extractSass = new ExtractTextPlugin({
-    filename: "style.css",
+    filename: "style.[git-revision-hash].css",
     allChunks: true
 });
-
-/* TODO: incorporate useful stuff from below (https://stackoverflow.com/questions/35054082/webpack-how-to-build-production-code-and-how-to-use-it)
-plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        // This has effect on the react lib size
-        'NODE_ENV': JSON.stringify('production'),
-      }
-    }),
-    new ExtractTextPlugin("bundle.css", {allChunks: false}),
-    new webpack.optimize.AggressiveMergingPlugin(),
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin({
-      mangle: true,
-      compress: {
-        warnings: false, // Suppress uglification warnings
-        pure_getters: true,
-        unsafe: true,
-        unsafe_comps: true,
-        screw_ie8: true
-      },
-      output: {
-        comments: false,
-      },
-      exclude: [/\.min\.js$/gi] // skip pre-minified libs
-    }),
-    new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]), //https://stackoverflow.com/questions/25384360/how-to-prevent-moment-js-from-loading-locales-with-webpack
-    new CompressionPlugin({
-      asset: "[path].gz[query]",
-      algorithm: "gzip",
-      test: /\.js$|\.css$|\.html$/,
-      threshold: 10240,
-      minRatio: 0
-    })
-  ],
-*/
-
 
 let configObj = {
   entry: [
     './src/client.js',
   ],
   output: {
-    path: config.get('assets.outputPath'),
-    filename: 'bundle.js',
+    filename: 'bundle.[git-revision-hash].js',
     publicPath: '/'
   },
   resolve: {
@@ -90,6 +54,7 @@ let configObj = {
   },
 
   plugins: [
+    new GitRevisionPlugin(),
     new CopyWebpackPlugin([{
         from: path.resolve(__dirname, '../src/assets/icons'),
         to:'icons/',
@@ -98,7 +63,9 @@ let configObj = {
 }
 
 if (config.get('assets.compileAssets')) {
-  configObj.plugins.push(extractSass)
+  configObj.plugins.push(extractSass);
+  configObj.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
+  configObj.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
   configObj.module.loaders.push({
     test: /\.scss$/,
     use: ExtractTextPlugin.extract({
@@ -107,7 +74,7 @@ if (config.get('assets.compileAssets')) {
         { loader: "sass-loader" }
       ],
     })
-  })
+  });
   configObj.module.loaders.push({
     test: /\.css$/,
      use: ExtractTextPlugin.extract({
@@ -115,7 +82,52 @@ if (config.get('assets.compileAssets')) {
         { loader: "css-loader" },
       ],
     }),
-  })
+  });
+  configObj.plugins.push(
+    new webpack.DefinePlugin({
+      'process.env': {
+        // This has effect on the react lib size
+        'NODE_ENV': JSON.stringify('production'),
+      }
+    })
+  );
+  configObj.plugins.push(
+    new webpack.optimize.UglifyJsPlugin({
+      mangle: true,
+      compress: {
+        warnings: false, // Suppress uglification warnings
+        pure_getters: true,
+        unsafe: true,
+        unsafe_comps: true,
+        screw_ie8: true
+      },
+      output: {
+        comments: false,
+      },
+      exclude: [/\.min\.js$/gi] // skip pre-minified libs
+    })
+  );
+  configObj.plugins.push(
+    new CompressionPlugin({
+      asset: "[path].gz[query]",
+      algorithm: "gzip",
+      test: /\.js$|\.css$|\.html$/,
+      threshold: 10240,
+      minRatio: 0
+    })
+  );
+  configObj.plugins.push(
+    new S3Plugin({
+      exclude: /.*\.(html)/,
+      s3Options: {
+        accessKeyId: config.get('assets.s3AccessKey'),
+        secretAccessKey: config.get('assets.s3AccessToken'),
+      },
+      s3UploadOptions: {
+        Bucket: config.get('assets.s3Bucket')
+      }
+    })
+  )
 } else {
   configObj.module.loaders.push({
     test: /\.scss$/,
