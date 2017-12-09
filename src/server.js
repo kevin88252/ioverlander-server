@@ -18,27 +18,20 @@ const debug = require('debug')('iOverlander:Server')
 const express = require('express')
 const helmet = require('helmet')
 const flash = require('connect-flash')
-const React = require('react')
-const ReactDOMServer = require('react-dom/server')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const compression = require('compression')
 const multer = require('multer')
-const ReactRouter = require('react-router-dom').StaticRouter
-const matchPath = require('react-router-dom').matchPath
 const config = require('config')
 
 // Local dependencies
-const Html = require('./components/Html').default
-const enableApi = require('./api')
+const setupApi = require('./api')
 const passport = require('./helpers/authenticationStrategy').default
 const middlewares = require('./helpers/middleware')
 const upload = multer({ dest: 'tmp/' })
-const routes = require('./config/routes').default
+//const routes = require('./config/routes').default
 const makeClientConfig = require('./client_config').default
-const createApplicationStore = require('./store/ApplicationStore').default
 const setUser = require('./actions/setUser').setUser
-const Container = require('./components/Container').default
 
 debug('Server booting')
 const app = express()
@@ -77,6 +70,9 @@ app.use(passport.session())
 // Flash messages
 app.use(flash())
 
+// Template stuff
+app.set('view engine', 'ejs');
+
 // Healthcheck
 app.get('/private/health', middlewares.healthCheck())
 
@@ -94,79 +90,31 @@ app.get('/getUserInfo', middlewares.getUserInfo())
 app.post('/photos/upload', upload.array('photos', 5), middlewares.uploadUserImages())
 
 // Required roles
-app.use(middlewares.checkRole(routes))
+// TODO: ROUTES
+// app.use(middlewares.checkRole(routes))
 
-enableApi(app)
+setupApi(app)
 
 // Handle Requests
 app.use((req, res, next) => {
-  debug('SessionUser exists? ', !!req.user)
-  const appStore = createApplicationStore()
-  const context = {}
-  const actionsToDispatch = []
+  let jsUrl = config.get('assets.urlPrefix')+'bundle'
+  if (config.get('assets.fileHash')) {
+    jsUrl +='.'+config.get('assets.fileHash')
+  }
+  jsUrl += '.js'
 
-  routes.some(route => {
-    const match = matchPath(req.url, Object.assign(
-      {},
-      { exact: true },
-      route
-    ))
-
-    if (match && route.action) {
-      if (Array.isArray(route.action)) {
-        route.action.forEach(action => actionsToDispatch.push([action, match]))
-      } else {
-        actionsToDispatch.push([route.action, match])
-      }
-    }
-  })
-
-  const waitForRender = actionsToDispatch.length
-    ? Promise.all(actionsToDispatch.map(action => {
-      return appStore.dispatch(action[0](action[1], req.user))
-    })) : Promise.resolve()
-
-  waitForRender.then(() => {
-    appStore.dispatch(setUser(req.user))
-    appStore.dispatch({
-      type: 'SET_FLASH',
-      flashMessage: req.flash('error')
-    })
-
-    const routeComponent = React.createElement(ReactRouter, {
-      location: req.url,
-      context: context,
-      children: React.createElement(Container, {
-        store: appStore
-      })
-    })
-
-    let jsUrl = config.get('assets.urlPrefix')+'bundle'
-    let cssUrl = config.get('assets.urlPrefix')+'style'
+  let cssUrl = null
+  if (config.get('assets.compileAssets')) {
+    cssUrl = config.get('assets.urlPrefix')+'style'
     if (config.get('assets.fileHash')) {
-      jsUrl +='.'+config.get('assets.fileHash')
       cssUrl +='.'+config.get('assets.fileHash')
     }
-    jsUrl += '.js'
     cssUrl += '.css'
-
-    const routeHandler = React.createElement(Html, {
-      html: ReactDOMServer.renderToString(routeComponent),
-      clientConfig: makeClientConfig(),
+  } 
+  res.render('index', {
+      clientConfig: JSON.stringify(makeClientConfig()),
       jsUrl: jsUrl,
-      cssUrl: config.get('assets.compileAssets') ? cssUrl : false,
-      appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),
-      store: appStore,
-      nonce: inlineScriptNonce
-    })
-
-    const renderedComponent = ReactDOMServer.renderToString(routeHandler)
-
-    res.set('Content-Type', 'text/html')
-    res.end('<!DOCTYPE html>' + renderedComponent)
-    debug('Response sent')
-  }).catch((e) => {
-    next(e)
+      cssUrl: cssUrl,
   })
 })
 
@@ -174,16 +122,3 @@ app.use((req, res, next) => {
 app.listen(3000)
 debug('Listening on port 3000')
 
-/*} else {
-// TODO: Refactor letsencrypt
-  let greenlock = require('greenlock-express')
-  greenlock.create({
-    server: 'https://acme-v01.api.letsencrypt.org/directory',
-    email: config.get('email.address'),
-    agreeTos: true,
-    approveDomains: [config.get('domain')],
-    app
-  }).listen(80, 443)
-  debug('Listening on ' + config.get('baseUrl'))
-}
-*/

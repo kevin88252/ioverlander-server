@@ -1,10 +1,10 @@
 import sequelize from 'sequelize'
 import moment from 'moment'
 import bcrypt from 'bcrypt-nodejs'
-import { validateForm as validate } from '../components/UserRegistration/UserRegistration'
+//import { validateForm as validate } from '../components/UserRegistration/UserRegistration'
 
 export default (models) => function (req, res) {
-  const errors = validate(req.body)
+  // TODO: const errors = validate(req.body)
 
   if (Object.keys(errors).length) {
     res.json({

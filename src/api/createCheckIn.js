@@ -1,6 +1,6 @@
 import sequelize from 'sequelize'
 import moment from 'moment'
-import { validate } from '../components/CheckIn/Forms/CheckInDetails'
+// import { validate } from '../components/CheckIn/Forms/CheckInDetails'
 
 export default (models) => function (req, res) {
   if (!req.user) {
@@ -11,7 +11,8 @@ export default (models) => function (req, res) {
     return
   }
 
-  const errors = validate(req.body)
+  // TODO: validate server side
+  //const errors = validate(req.body)
 
   if (Object.keys(errors).length) {
     res.json({
