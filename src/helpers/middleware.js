@@ -16,8 +16,16 @@ const sessionDB = new Sequelize(
   config.get('sessionDb.password'),
   config.get('sessionDb')
 )
+const store = new SequelizeStore({ db: sessionDB })
 
 sessionDB.sync()
+
+// clean up function required to gracefully
+// close connections for testing purposes
+export function closeDB () {
+  sessionDB.connectionManager.close().then(() => console.log('closing DB connection'))
+  store.stopExpiringSessions()
+}
 
 // Content Security Policy
 export function contentSecurityPolicy (inlineScriptNonce) {
@@ -35,12 +43,13 @@ export function contentSecurityPolicy (inlineScriptNonce) {
 }
 
 // Session Management
+
 export function sessions () {
   return session({
     resave: true,
     saveUninitialized: true,
     secret: config.get('sessionSettings.secret'),
-    store: new SequelizeStore({ db: sessionDB }),
+    store: store,
     cookie: {
       secure: config.get('sessionSettings.secure'),
       domain: config.get('domain')

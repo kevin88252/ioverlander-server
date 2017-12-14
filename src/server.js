@@ -141,8 +141,8 @@ app.use((req, res, next) => {
       })
     })
 
-    let jsUrl = config.get('assets.urlPrefix')+'/bundle'
-    let cssUrl = config.get('assets.urlPrefix')+'/style'
+    let jsUrl = config.get('assets.urlPrefix') + '/bundle'
+    let cssUrl = config.get('assets.urlPrefix') + '/style'
     if (config.get('assets.fileHash')) {
       jsUrl +='.'+config.get('assets.fileHash')
       cssUrl +='.'+config.get('assets.fileHash')
@@ -171,8 +171,14 @@ app.use((req, res, next) => {
 })
 
 // Start Server
-app.listen(3000)
-debug('Listening on port 3000')
+if (!module.parent) {
+  app.listen(3000)
+  debug('Listening on port 3000')
+}
+
+app.closeDB = middlewares.closeDB
+
+module.exports = app;
 
 /*} else {
 // TODO: Refactor letsencrypt
