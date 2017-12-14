@@ -178,7 +178,7 @@ if (!module.parent) {
 
 app.closeDB = middlewares.closeDB
 
-module.exports = app;
+module.exports = app
 
 /*} else {
 // TODO: Refactor letsencrypt

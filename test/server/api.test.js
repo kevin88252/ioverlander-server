@@ -3,7 +3,7 @@
 const request = require('supertest')
 const test = require('tape')
 
-const app = require('../../src/server.js');
+const app = require('../../src/server.js')
 
 test('GET /api/place_properties', (t) => {
   request(app)
@@ -11,10 +11,10 @@ test('GET /api/place_properties', (t) => {
     .expect('Content-Type', /text\/html/)
     .expect(200)
     .end(function(err, res) {
-      t.error(err, 'No error');
+      t.error(err, 'No error')
       t.end()
-    });
-});
+    })
+})
 
 test.onFinish((t)=>{
   app.closeDB()
