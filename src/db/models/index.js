@@ -47,4 +47,8 @@ Object.keys(db).forEach(function (modelName) {
 db.sequelize = sequelize
 db.Sequelize = Sequelize
 
+db.closeDB = (db) => {
+  db.connectionManager.close().then(() => console.log('closing DB connection'))
+}
+
 module.exports = db

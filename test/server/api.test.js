@@ -5,12 +5,14 @@ const test = require('tape')
 
 const app = require('../../src/server.js')
 
-test('GET /api/place_properties', (t) => {
+
+test('GET /api/countries', (t) => {
   request(app)
-    .get('/api/place_properties')
-    .expect('Content-Type', /text\/html/)
+    .get('/api/countries')
+    .expect('Content-Type', /json/)
     .expect(200)
     .end(function(err, res) {
+      // test res.body
       t.error(err, 'No error')
       t.end()
     })

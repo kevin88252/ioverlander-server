@@ -23,8 +23,8 @@ sessionDB.sync()
 // clean up function required to gracefully
 // close connections for testing purposes
 export function closeDB () {
-  sessionDB.connectionManager.close().then(() => console.log('closing DB connection'))
   store.stopExpiringSessions()
+  sessionDB.connectionManager.close().then(() => console.log('closing DB connection'))
 }
 
 // Content Security Policy

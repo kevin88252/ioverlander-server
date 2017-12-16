@@ -9,7 +9,6 @@ module.exports = {
       host: 'localhost:8080',
       urlPrefix: 'http://localhost:8080/'
   },
-
   db: {
     username:"ioverlander",
     password:"password",

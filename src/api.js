@@ -1,7 +1,6 @@
 'use strict'
 
 const debugLib = require('debug')
-const models = require('./db/models')
 const cache = process.env.NODE_ENV === 'production' ? require('express-redis-cache')({
   expire: 60 * 60,
   host: 'localhost'
@@ -28,7 +27,7 @@ const placeTypesApiEndpoint = require('./api/placeTypes').default
 
 const debug = debugLib('Reduxible:API')
 
-module.exports = (app) => {
+module.exports = (app, models) => {
   debug('Loading API Routes into server')
   app.get('/api/place/:id', cache.route(), placeApiEndpoint(models))
   app.get('/api/locations/:north/:south/:east/:west', cache.route(), locationsApiEndpoint(models))

@@ -40,6 +40,8 @@ const createApplicationStore = require('./store/ApplicationStore').default
 const setUser = require('./actions/setUser').setUser
 const Container = require('./components/Container').default
 
+const models = require('./db/models')
+
 debug('Server booting')
 const app = express()
 
@@ -96,7 +98,7 @@ app.post('/photos/upload', upload.array('photos', 5), middlewares.uploadUserImag
 // Required roles
 app.use(middlewares.checkRole(routes))
 
-enableApi(app)
+enableApi(app, models)
 
 // Handle Requests
 app.use((req, res, next) => {
@@ -176,7 +178,10 @@ if (!module.parent) {
   debug('Listening on port 3000')
 }
 
-app.closeDB = middlewares.closeDB
+app.closeDB = () => {
+  middlewares.closeDB();
+  models.closeDB(models.sequelize);
+}
 
 module.exports = app
 
