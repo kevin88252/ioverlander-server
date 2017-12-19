@@ -27,8 +27,6 @@ export default (models) => function (req, res) {
     where[col] = true
   })
 
-  console.log(where)
-
   models.place_properties.findAll({
     where: where,
     attributes: ['place_id']
