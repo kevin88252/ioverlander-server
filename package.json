@@ -9,7 +9,7 @@
     "dev": "npm-run-all --parallel webpack-dev-server dev-server",
     "build-dev": "webpack --progress --config ./config/webpack.config.development.js",
     "compile-assets": "NODE_ENV=production webpack --progress -p --config ./config/webpack.config.js",
-    "test": "karma start config/karma.conf.js || true",
+    "test": "karma start config/karma.conf.js || true && tape test/server/*.test.js",
     "ui-test": "nightwatch",
     "build-place-index": "node src/db/tasks/populatePlaceProperties.js",
     "start": "NODE_ENV=production node src/server.js"
