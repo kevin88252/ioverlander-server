@@ -11,10 +11,11 @@
     attributes: ['id', 'place_category_id', 'properties_blob', 'country_id'],
     order: [['id', 'ASC']]
   }).then((places) => {
+
     places.forEach((place) => {
       place = place.dataValues
 
-      console.log(place.check_ins[0].visited)
+      // console.log(place.check_ins[0].visited)
 
       const new_place_properties = models.place_properties.build({
         place_id: place.id,

@@ -154,7 +154,7 @@ test('GET /api/blogs/:id', (t) => {
 // // test('GET /api/download/:country/:format', (t) => {
 // //   request(app)
 // //     .get('/api/download/4/csv')
-// //     .expect('Content-Type', /json/)
+// //     .expect('Content-Type', /csv/)
 // //     .expect(200)
 // //     .end(function(err, res) {
 // //       t.error(err, 'No error')
