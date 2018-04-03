@@ -63,7 +63,6 @@ function dropDB (next) {
   })
 }
 
-
 function dropSessionDB (next) {
   pgtools.dropdb(sessionconfig, config.sessionDb.database, (err, res) => {
     if (err) {
@@ -80,5 +79,3 @@ module.exports.createDB = createDB
 module.exports.dropDB = dropDB
 module.exports.createSessionDB = createSessionDB
 module.exports.dropSessionDB = dropSessionDB
-
-
