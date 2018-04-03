@@ -1,4 +1,5 @@
 // process.env.DEBUG = 'iOverlander:Server,Reduxible:API,*';
+process.env.NODE_ENV = "test"
 
 const request = require('supertest')
 const test = require('tape')
@@ -20,11 +21,15 @@ const app = require('../../src/server.js')
     * app.post('/api/user/resetPassword', resetPassword(models))
     * app.post('/api/user/updatePassword', updatePassword(models))
     * app.get('/api/user/checkPasswordResetToken', checkPasswordResetToken(models))
+
+    * app.post('/login', middlewares.login())
+    * app.get('/logout', middlewares.logout())
+    * app.get('/getUserInfo', middlewares.getUserInfo())
+
+    * app.post('/photos/upload', upload.array('photos', 5), middlewares.uploadUserImages())
+    * app.get('/private/health', middlewares.healthCheck())
 */
 
-// note: a bad request does not return
-// 404, instead returns a generic iOverlander
-// html page
 test('POST /api/checkEmail - no email', (t) => {
   request(app)
     .post('/api/checkEmail')

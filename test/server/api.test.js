@@ -1,4 +1,4 @@
-// process.env.DEBUG = 'iOverlander:Server,Reduxible:API,*';
+process.env.NODE_ENV = "test"
 
 const request = require('supertest')
 const test = require('tape')

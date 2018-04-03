@@ -180,8 +180,8 @@ if (!module.parent) {
 }
 
 app.closeDB = () => {
-  middlewares.closeDB();
-  models.closeDB(models.sequelize);
+  middlewares.closeDB()
+  models.closeDB(models.sequelize)
 }
 
 module.exports = app
