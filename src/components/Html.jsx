@@ -21,7 +21,7 @@ class Html extends React.Component {
       </head>
       <body>
         <div id='app' dangerouslySetInnerHTML={{__html: this.props.html}} />
-        <script nonce={this.props.nonce} dangerouslySetInnerHTML={{__html: this.props.appplicationState}} />
+        <script nonce={this.props.nonce} dangerouslySetInnerHTML={{__html: this.props.applicationState}} />
         <script src={this.props.jsUrl}></script>
         <script src='https://open.mapquestapi.com/sdk/leaflet/v2.2/mq-map.js?key=uNa6nVBj1KegshVWQjnbqiAjGzQje01C'></script>
       </body>
@@ -30,7 +30,7 @@ class Html extends React.Component {
 }
 
 Html.propTypes = {
-  appplicationState: PropTypes.string,
+  applicationState: PropTypes.string,
   html: PropTypes.string,
   title: PropTypes.string,
   jsUrl: PropTypes.string.isRequired,

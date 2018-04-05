@@ -303,7 +303,7 @@ class HomePage extends React.Component {
                   <label htmlFor='selectAll'>Select/Deselect All</label>
                 </li>
                 {Object.keys(this.state.filteredTypes).map((type, i) => {
-                  return <li className={this.state.filteredTypes[type] ? 'active' : ''}>
+                  return <li key={i + Math.random()} className={this.state.filteredTypes[type] ? 'active' : ''}>
                     <input checked={this.state.filteredTypes[type]} type='checkbox' id={`filter-${i}`} onChange={() => {
                       const thisFilter = {}
                       thisFilter[type] = !this.state.filteredTypes[type]
@@ -331,8 +331,8 @@ class HomePage extends React.Component {
       <Lightbox small={true} ref='lightbox'>
         <div className='homepage-legend-container'>
           <ul className='homepage-legend'>
-            {this.props.placeTypes.map(type => {
-              return <li>
+            {this.props.placeTypes.map((type, i) => {
+              return <li key={i + Math.random()} >
                 <img src={constructStaticAssetUrl('icons/'+type.icon+'.png')} />
                 <p>{type.name}</p>
               </li>

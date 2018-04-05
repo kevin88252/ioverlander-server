@@ -2,11 +2,12 @@ import React, { PropTypes } from 'react'
 import RequestPasswordReset from './RequestPasswordResetForm'
 import PasswordResetForm from './ResetPasswordForm'
 
-class PaswordReset extends React.Component {
+class PasswordReset extends React.Component {
+
   render () {
-    if (this.props.params.token && this.props.store.getState().reset_user_id) {
+    if (this.props.params && this.props.params.token && this.props.store.getState().reset_user_id) {
       return <PasswordResetForm {...this.props} />
-    } else if (this.props.params.token && !this.props.store.getState().reset_user_id) {
+    } else if (this.props.params && this.props.params.token && !this.props.store.getState().reset_user_id) {
       return <main className='content is-flex' style={{ display: 'block' }}>
         <section className='login-container' style={{width: '100%'}}>
           <div className='row'>
@@ -23,9 +24,9 @@ class PaswordReset extends React.Component {
   }
 }
 
-PaswordReset.propTypes = {
+PasswordReset.propTypes = {
   params: PropTypes.object,
   store: PropTypes.object
 }
 
-export default PaswordReset
+export default PasswordReset
