@@ -10,13 +10,13 @@ const timeout = 5000
 let app;
 
 test('setup', (t) => {
-  setup.createDB((err)=>{
-    if (err) t.end()
-    setup.createSessionDB((err) => {
-      if (err) t.end()
-      app = require('../../src/server.js')
+  setup.create((err)=>{
+    if (err) {
+      console.error(err)
       t.end()
-    })
+    }
+    app = require('../../src/server.js')
+    t.end()
   })
 })
 
@@ -183,10 +183,16 @@ test('POST /api/user/update - no session', (t) => {
     })
 })
 
-test.onFinish((t)=>{
-  app.closeDB()
-  setTimeout(()=>{
-    setup.dropDB()
-    setup.dropSessionDB()
+test('teardown', (t) => {
+  // allow connection pool to drain
+  setTimeout(() => {
+    setup.drop(t.end)
+  }, timeout)
+})
+
+test.onFinish(()=>{
+  // allow connection pool to drain
+  setTimeout(() => {
+    app.closeDB()
   }, timeout)
 })

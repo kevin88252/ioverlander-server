@@ -20,9 +20,9 @@ var sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.pas
   },
   logging: false,
   pool: {
-    max: 5,
-    min: 0,
-    idle: 10000
+    max: dbConfig.pool.max,
+    min: dbConfig.pool.min,
+    idle: dbConfig.pool.idle
   }
 })
 

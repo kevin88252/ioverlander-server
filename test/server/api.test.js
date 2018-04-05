@@ -10,13 +10,13 @@ const timeout = 5000
 let app;
 
 test('setup', (t) => {
-  setup.createDB((err)=>{
-    if (err) t.end()
-    setup.createSessionDB((err) => {
-      if (err) t.end()
-      app = require('../../src/server.js')
+  setup.create((err)=>{
+    if (err) {
+      console.error(err)
       t.end()
-    })
+    }
+    app = require('../../src/server.js')
+    t.end()
   })
 })
 
@@ -33,6 +33,8 @@ test('setup', (t) => {
 // 404, instead returns a generic iOverlander
 // html page
 test('GET /api/bad_request', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/bad_request')
     .expect('Content-Type', /text\/html/)
@@ -45,6 +47,8 @@ test('GET /api/bad_request', (t) => {
 
 // Standard for requests like this is WSEN, not NSEW
 test('GET /api/locations/:north/:south/:east/:west', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/locations/20/-20/10/-20')
     .expect('Content-Type', /json/)
@@ -59,6 +63,8 @@ test('GET /api/locations/:north/:south/:east/:west', (t) => {
 })
 
 test('GET /api/countries', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/countries')
     .expect('Content-Type', /json/)
@@ -76,6 +82,8 @@ test('GET /api/countries', (t) => {
 })
 
 test('GET /api/regions', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/regions')
     .expect('Content-Type', /json/)
@@ -93,6 +101,8 @@ test('GET /api/regions', (t) => {
 })
 
 test('GET /api/placeTypes', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/placeTypes')
     .expect('Content-Type', /json/)
@@ -124,6 +134,8 @@ test('GET /api/placeTypes', (t) => {
 
 
 test('GET /api/blogs/:id', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/blogs/1')
     .expect('Content-Type', /json/)
@@ -185,6 +197,8 @@ test('GET /api/blogs/:id', (t) => {
 
 
 test('GET /api/blogs/:id/check_ins/:page', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/blogs/1/check_ins/1')
     .expect('Content-Type', /json/)
@@ -238,6 +252,8 @@ test('GET /api/blogs/:id/check_ins/:page', (t) => {
 // it returns the 404 client page -- but with a 200
 // wtf?
 test('GET /api/staticContent/:page', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .get('/api/staticContent/1')
     .expect('Content-Type', /json/)
@@ -251,6 +267,8 @@ test('GET /api/staticContent/:page', (t) => {
 })
 
 test('POST /api/checkEmail - no email', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .post('/api/checkEmail')
     .send({email: 'nogooddogs@bademail.zz'})
@@ -265,6 +283,8 @@ test('POST /api/checkEmail - no email', (t) => {
 })
 
 test('POST /api/checkEmail - email exists', (t) => {
+  t.timeoutAfter(timeout)
+
   request(app)
     .post('/api/checkEmail')
     .send({ email: 'user@ioverlander.com'})
@@ -278,11 +298,17 @@ test('POST /api/checkEmail - email exists', (t) => {
     })
 })
 
-test.onFinish((t)=>{
-  app.closeDB()
-  setTimeout(()=>{
-    setup.dropDB()
-    setup.dropSessionDB()
+test('teardown', (t) => {
+  // allow connection pool to drain
+  setTimeout(() => {
+    setup.drop(t.end)
+  }, timeout)
+})
+
+test.onFinish(()=>{
+  // allow connection pool to drain
+  setTimeout(() => {
+    app.closeDB()
   }, timeout)
 })
 

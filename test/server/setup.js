@@ -7,75 +7,68 @@ const dbconfig = {
   user: config.db.username,
   password: config.db.password,
   port: 5432,
-  host: config.db.host
+  host: config.db.host,
+  db: config.db.database,
+  populate: true
 }
 
 const sessionconfig = {
   user: config.sessionDb.username,
   password: config.sessionDb.password,
   port: 5432,
-  host: config.sessionDb.host
+  host: config.sessionDb.host,
+  db: config.sessionDb.database,
+  populate: false
 }
 
-function createDB (next) {
+function createDB (config, next) {
   // creating database
-  console.log('creating test database')
-  pgtools.createdb(dbconfig, config.db.database, (err, res) => {
-    if (err && err.name !== 'duplicate_database') {
+  pgtools.createdb(config, config.db, (err, res) => {
+    if (err && err.name == 'duplicate_database') {
+      return dropDB(config, ()=>{
+        createDB(config, next)
+      })
+    } else if (err) {
       next(err)
-      process.exit(-1)
     }
-    console.log('test database created')
-
-    exec('psql -U ' + config.db.username + ' -d ' + config.db.database + ' < dev_light.sql', function(err) {
-      if (err) {
-        next(err)
-        process.exit(-1)
-      }
-      console.log('test database populated')
+    console.log('"%s" created', config.db)
+    if (config.populate) {
+      exec('psql -U ' + config.user + ' -d ' + config.db + ' < dev_light.sql', function(err) {
+        if (err) {
+          next(err)
+          process.exit(-1)
+        }
+        console.log('"%s" populated', config.db)
+        next()
+      })
+    } else {
       next()
-    });
-  })
-}
-
-function createSessionDB (next) {
-  // creating database
-  console.log('creating test session database')
-  pgtools.createdb(sessionconfig, config.sessionDb.database, (err, res) => {
-    if (err && err.name !== 'duplicate_database') {
-      next(err)
-      process.exit(-1)
     }
-    console.log('test session database created')
-    next()
   })
 }
 
-function dropDB (next) {
-  pgtools.dropdb(dbconfig, config.db.database, (err, res) => {
+function dropDB (config, next) {
+  pgtools.dropdb(config, config.db, (err, res) => {
     if (err) {
       if (next) next(err)
       else console.error(err)
       process.exit(-1)
     }
-    console.log('test database dropped')
+    console.log('"%s" dropped', config.db)
     if (next) next()
   })
 }
 
-function dropSessionDB (next) {
-  pgtools.dropdb(sessionconfig, config.sessionDb.database, (err, res) => {
-    if (err) {
-      if (next) next(err)
-      else console.error(err)
-      process.exit(-1)
-    }
-    console.log('test session database dropped')
-    if (next) next()
+module.exports.create = function (next) {
+  createDB(dbconfig, (err) => {
+    if (err) next(err)
+    createDB(sessionconfig, next)
   })
 }
 
-module.exports.createDB = createDB
-module.exports.dropDB = dropDB
-module.exports.createSessionDB = createSessionDB
-module.exports.dropSessionDB = dropSessionDB
+module.exports.drop = function (next) {
+  dropDB(dbconfig, (err) => {
+    if (err) return console.error(err)
+    dropDB(sessionconfig, next)
+  })
+}
