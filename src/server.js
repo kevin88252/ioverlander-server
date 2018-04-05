@@ -155,7 +155,7 @@ app.use((req, res, next) => {
       clientConfig: makeClientConfig(),
       jsUrl: jsUrl,
       cssUrl: config.get('assets.compileAssets') ? cssUrl : false,
-      appplicationState: 'window.app=' + JSON.stringify(appStore.getState()),
+      applicationState: 'window.app=' + JSON.stringify(appStore.getState()),
       store: appStore,
       nonce: inlineScriptNonce
     })
