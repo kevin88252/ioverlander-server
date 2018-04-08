@@ -20,6 +20,7 @@ test('setup', (t) => {
   })
 })
 
+
 /*
 
   * TESTS TO WRITE:
@@ -183,16 +184,7 @@ test('POST /api/user/update - no session', (t) => {
     })
 })
 
-test('teardown', (t) => {
-  // allow connection pool to drain
-  setTimeout(() => {
-    setup.drop(t.end)
-  }, timeout)
-})
-
 test.onFinish(()=>{
-  // allow connection pool to drain
-  setTimeout(() => {
-    app.closeDB()
-  }, timeout)
+  app.closeDB()
+  setup.drop()
 })

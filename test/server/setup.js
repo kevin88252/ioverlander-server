@@ -48,14 +48,15 @@ function createDB (config, next) {
 }
 
 function dropDB (config, next) {
+  if (!next) next = (err) => { if (err) return console.error(err) }
   pgtools.dropdb(config, config.db, (err, res) => {
     if (err) {
-      if (next) next(err)
-      else console.error(err)
-      process.exit(-1)
+      if (err.name == 'invalid_catalog_name') return next()
+      else next(err)
+    } else {
+      console.log('"%s" dropped', config.db)
+      next()
     }
-    console.log('"%s" dropped', config.db)
-    if (next) next()
   })
 }
 

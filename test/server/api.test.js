@@ -125,7 +125,7 @@ test('GET /api/placeTypes', (t) => {
           'icon',
           'gpx_symbol'
         ]
-        console.log('##', r.name)
+        t.comment('##', r.name)
         testFields(t, expectedFields, r)
       })
       t.end()
@@ -220,7 +220,7 @@ test('GET /api/blogs/:id/check_ins/:page', (t) => {
       ]
       testFields(t, expectedFields, results)
 
-      console.log('## results.blog')
+      t.comment('## results.blog')
       expectedFields = [
         'id',
         'name',
@@ -234,7 +234,7 @@ test('GET /api/blogs/:id/check_ins/:page', (t) => {
       ]
       testFields(t, expectedFields, results.blog)
 
-      console.log('## results.results[0]')
+      t.comment('## results.results[0]')
       expectedFields = [
         'check_in_translations',
         'place',
@@ -298,18 +298,9 @@ test('POST /api/checkEmail - email exists', (t) => {
     })
 })
 
-test('teardown', (t) => {
-  // allow connection pool to drain
-  setTimeout(() => {
-    setup.drop(t.end)
-  }, timeout)
-})
-
 test.onFinish(()=>{
-  // allow connection pool to drain
-  setTimeout(() => {
-    app.closeDB()
-  }, timeout)
+  app.closeDB()
+  setup.drop()
 })
 
 function testFields(t, expected, results) {
