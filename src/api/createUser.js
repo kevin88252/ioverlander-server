@@ -5,13 +5,12 @@ import bcrypt from 'bcrypt-nodejs'
 
 export default (models) => function (req, res) {
   // TODO: const errors = validate(req.body)
-
-  if (Object.keys(errors).length) {
-    res.json({
-      errors: errors
-    })
-    return false
-  }
+  // if (Object.keys(errors).length) {
+  //   res.json({
+  //     errors: errors
+  //   })
+  //   return false
+  // }
 
   const new_user = models.users.build({
     email: req.body.user_email,

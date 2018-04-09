@@ -31,7 +31,7 @@ const middlewares = require('./helpers/middleware')
 const upload = multer({ dest: 'tmp/' })
 //const routes = require('./config/routes').default
 const makeClientConfig = require('./client_config').default
-const setUser = require('./actions/setUser').setUser
+// const setUser = require('./actions/setUser').setUser
 
 const models = require('./db/models')
 
@@ -95,7 +95,7 @@ app.post('/photos/upload', upload.array('photos', 5), middlewares.uploadUserImag
 // TODO: ROUTES
 // app.use(middlewares.checkRole(routes))
 
-setupApi(app)
+setupApi(app, models)
 
 // Handle Requests
 app.use((req, res, next) => {
@@ -133,4 +133,3 @@ app.closeDB = () => {
 }
 
 module.exports = app
-
