@@ -4,13 +4,13 @@ const path = require('path')
 const request = require('supertest')
 const test = require('tape')
 
-const setup = require('./setup.js')
+const utils = require('./utils.js')
 const timeout = 5000
 
 let app;
 
-test('setup', (t) => {
-  setup.create((err)=>{
+test('utils', (t) => {
+  utils.create((err)=>{
     if (err) {
       console.error(err)
       t.end()
@@ -186,5 +186,5 @@ test('POST /api/user/update - no session', (t) => {
 
 test.onFinish(()=>{
   app.closeDB()
-  setup.drop()
+  utils.drop()
 })
