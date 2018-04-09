@@ -16,8 +16,8 @@ export default (models) => function (req, res) {
       id: req.user.id
     }
   }).then(user => {
-    if (!bcrypt.compareSync(account_updates.user_current_pasword, user.encrypted_password)) {
-      return Promise.reject({ errors: { user_current_pasword: 'Your current password was incorrect' } })
+    if (!bcrypt.compareSync(account_updates.user_current_password, user.encrypted_password)) {
+      return Promise.reject({ errors: { user_current_password: 'Your current password was incorrect' } })
     }
 
     const new_fields = {

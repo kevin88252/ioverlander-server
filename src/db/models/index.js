@@ -20,9 +20,9 @@ var sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.pas
   },
   logging: false,
   pool: {
-    max: 5,
-    min: 0,
-    idle: 10000
+    max: dbConfig.pool.max,
+    min: dbConfig.pool.min,
+    idle: dbConfig.pool.idle
   }
 })
 
@@ -46,5 +46,9 @@ Object.keys(db).forEach(function (modelName) {
 
 db.sequelize = sequelize
 db.Sequelize = Sequelize
+
+db.closeDB = (db) => {
+  db.connectionManager.close().then(() => console.log('closing DB connection'))
+}
 
 module.exports = db

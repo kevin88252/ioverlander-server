@@ -12,14 +12,24 @@ module.exports = {
   db: {
     username:"ioverlander",
     password:"password",
-    database: "ioverlander",
+    database: "ioverlander-test",
     host: "localhost",
+    pool: {
+      max: 0,
+      min: 0,
+      idle: 0
+    }
   },
   sessionDb: {
     username:"ioverlander",
     password:"password",
     host: "localhost",
-    database: "ioverlander_node_sessions",
+    database: "ioverlander_node_sessions-test",
+    pool: {
+      max: 0,
+      min: 0,
+      idle: 0
+    }
   },
   sessionSettings: {
     secret: 'insecure-session-secret',

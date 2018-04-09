@@ -33,6 +33,8 @@ const upload = multer({ dest: 'tmp/' })
 const makeClientConfig = require('./client_config').default
 const setUser = require('./actions/setUser').setUser
 
+const models = require('./db/models')
+
 debug('Server booting')
 const app = express()
 
@@ -106,6 +108,7 @@ app.use((req, res, next) => {
   let cssUrl = null
   if (config.get('assets.compileAssets')) {
     cssUrl = config.get('assets.urlPrefix')+'style'
+
     if (config.get('assets.fileHash')) {
       cssUrl +='.'+config.get('assets.fileHash')
     }
@@ -114,11 +117,20 @@ app.use((req, res, next) => {
   res.render('index', {
       clientConfig: JSON.stringify(makeClientConfig()),
       jsUrl: jsUrl,
-      cssUrl: cssUrl,
+      cssUrl: cssUrl
   })
 })
 
 // Start Server
-app.listen(3000)
-debug('Listening on port 3000')
+if (!module.parent) {
+  app.listen(3000)
+  debug('Listening on port 3000')
+}
+
+app.closeDB = () => {
+  middlewares.closeDB()
+  models.closeDB(models.sequelize)
+}
+
+module.exports = app
 
